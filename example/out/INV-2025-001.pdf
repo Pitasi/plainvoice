@@ -1,0 +1,193 @@
+%PDF-1.4
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >> endobj
+4 0 obj << /Length 1451 >>
+stream
+BT
+/F2 22 Tf
+26.400002 TL
+38 786 Td
+(Invoice) Tj
+ET
+BT
+/F1 10 Tf
+12 TL
+38 747 Td
+(Date) Tj
+(: ) Tj
+/F2 10 Tf
+12 TL
+(2025-04-23) Tj
+ET
+BT
+/F1 10 Tf
+12 TL
+38 733 Td
+(Invoice Number) Tj
+(: ) Tj
+/F2 10 Tf
+12 TL
+(INV-2025-001) Tj
+ET
+BT
+/F1 10 Tf
+12 TL
+38 719 Td
+(Invoice Due) Tj
+(: ) Tj
+/F2 10 Tf
+12 TL
+(2025-04-23) Tj
+ET
+BT
+/F2 10 Tf
+12 TL
+38 690 Td
+(From) Tj
+ET
+BT
+/F1 10 Tf
+12 TL
+38 678 Td
+(John Snow) Tj
+(Fantastic Avenue 42) '
+(58123 Place) '
+(Westeros) '
+(Email: foo@bar.com) '
+() '
+ET
+BT
+/F2 10 Tf
+12 TL
+316 690 Td
+(To) Tj
+ET
+BT
+/F1 10 Tf
+12 TL
+316 678 Td
+(Acme INC) Tj
+(Awesome street 123) '
+(134432) '
+() '
+ET
+BT
+/F2 9 Tf
+10.8 TL
+38 546.6 Td
+(Description) Tj
+ET
+BT
+/F2 9 Tf
+10.8 TL
+312.896 546.6 Td
+(Quantity) Tj
+ET
+BT
+/F2 9 Tf
+10.8 TL
+433.69702 546.6 Td
+(Rate) Tj
+ET
+BT
+/F2 9 Tf
+10.8 TL
+523.007 546.6 Td
+(Amount) Tj
+ET
+q
+0.874 G
+1.8 w
+38 535.8 m
+557 535.8 l
+S
+Q
+BT
+/F1 9 Tf
+10.8 TL
+38 516 Td
+(Consultancy April 2025) Tj
+ET
+BT
+/F1 9 Tf
+10.8 TL
+344.396 516 Td
+(1) Tj
+ET
+BT
+/F1 9 Tf
+10.8 TL
+428.18002 516 Td
+(10000) Tj
+ET
+BT
+/F1 9 Tf
+10.8 TL
+510.479 516 Td
+(EUR 10000) Tj
+ET
+q
+0.874 G
+0.8 w
+38 505.2 m
+557 505.2 l
+S
+Q
+BT
+/F1 9 Tf
+10.8 TL
+297.5 486.40002 Td
+(Sub total) Tj
+ET
+BT
+/F1 9 Tf
+10.8 TL
+531.98 486.40002 Td
+(10000) Tj
+ET
+q
+0.874 G
+0.8 w
+297.5 475.60004 m
+557 475.60004 l
+S
+Q
+BT
+/F2 9 Tf
+10.8 TL
+297.5 456.80005 Td
+(Total) Tj
+ET
+BT
+/F2 9 Tf
+10.8 TL
+510.479 456.80005 Td
+(EUR 10000) Tj
+ET
+q
+0.874 G
+0.8 w
+297.5 446.00006 m
+557 446.00006 l
+S
+Q
+
+endstream
+endobj
+5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj
+6 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> endobj
+xref
+0 7
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+0000000115 00000 n
+0000000251 00000 n
+0000001754 00000 n
+0000001824 00000 n
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1899
+%%EOF
