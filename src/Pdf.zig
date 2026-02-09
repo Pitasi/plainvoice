@@ -4,7 +4,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const assert = std.debug.assert;
-const Writer = std.io.Writer;
+const Writer = @import("Writer.zig");
 const FontMetrics = @import("FontMetrics.zig");
 
 const Object = struct {
@@ -12,7 +12,7 @@ const Object = struct {
     generation_number: u8 = 0,
     type: ObjectType,
 
-    fn write(o: Object, writer: *Writer) !usize {
+    fn write(o: Object, writer: *Writer) !void {
         return o.type.write(o.number, o.generation_number, writer);
     }
 
@@ -87,7 +87,7 @@ const ObjectType = union(enum) {
         }
     }
 
-    fn write(self: ObjectType, number: u8, generation_number: u8, writer: anytype) !usize {
+    fn write(self: ObjectType, number: u8, generation_number: u8, writer: anytype) !void {
         switch (self) {
             inline else => |obj| return obj.write(number, generation_number, writer),
         }
@@ -113,12 +113,11 @@ const CatalogNode = struct {
         self.pages.deinit(gpa);
     }
 
-    fn write(self: CatalogNode, number: u8, generation_number: u8, writer: *Writer) !usize {
+    fn write(self: CatalogNode, number: u8, generation_number: u8, writer: *Writer) !void {
         var refBuf: [64]u8 = undefined;
         var buf: [1024]u8 = undefined;
         const ref = try self.pages.ref(&refBuf);
-        const printBuf = try std.fmt.bufPrint(&buf, "{} {} obj << /Type /Catalog /Pages {s} >> endobj\n", .{ number, generation_number, ref });
-        return writer.write(printBuf);
+        try writer.bufPrint(&buf, "{} {} obj << /Type /Catalog /Pages {s} >> endobj\n", .{ number, generation_number, ref });
     }
 
     fn getChildren(self: *CatalogNode) Children {
@@ -150,28 +149,23 @@ const PagesNode = struct {
         pages.children.deinit(gpa);
     }
 
-    fn write(pages: PagesNode, number: u8, generation_number: u8, writer: *Writer) !usize {
+    fn write(pages: PagesNode, number: u8, generation_number: u8, writer: *Writer) !void {
         // /Type /Pages /Kids [3 0 R 6 0 R] /Count 2
         var buf: [1024]u8 = undefined;
         var printBuf: []u8 = undefined;
 
-        var written: usize = 0;
-
-        printBuf = try std.fmt.bufPrint(&buf, "{} {} obj << /Type /Pages /Kids [", .{ number, generation_number });
-        written += try writer.write(printBuf);
+        try writer.bufPrint(&buf, "{} {} obj << /Type /Pages /Kids [", .{ number, generation_number });
 
         var refBuf: [64]u8 = undefined;
         const pagesCount = pages.children.items.len;
         for (pages.children.items, 0..) |c, i| {
-            written += try writer.write(try c.ref(&refBuf));
+            try writer.write(try c.ref(&refBuf));
             if (i != pagesCount - 1) {
-                written += try writer.write(" ");
+                try writer.write(" ");
             }
         }
         printBuf = try std.fmt.bufPrint(&buf, "] /Count {} >> endobj\n", .{pagesCount});
-        written += try writer.write(printBuf);
-
-        return written;
+        try writer.write(printBuf);
     }
 
     fn getChildren(pages: PagesNode) Children {
@@ -208,31 +202,24 @@ const PageNode = struct {
         page.stream_content.deinit(gpa);
     }
 
-    fn write(page: PageNode, number: u8, generation_number: u8, writer: *Writer) !usize {
+    fn write(page: PageNode, number: u8, generation_number: u8, writer: *Writer) !void {
         var parentRefBuf: [64]u8 = undefined;
         const parentRef = try page.pages.ref(&parentRefBuf);
 
         var contentRefBuf: [64]u8 = undefined;
         const contentRef = try page.stream_content.ref(&contentRefBuf);
 
-        var written: usize = 0;
-
         var buf: [1024]u8 = undefined;
-        const printBuf = try std.fmt.bufPrint(&buf, "{} {} obj << /Type /Page /Parent {s} /MediaBox [0 0 595 842] /Contents {s} /Resources << /Font << ", .{ number, generation_number, parentRef, contentRef });
-        written += try writer.write(printBuf);
+        try writer.bufPrint(&buf, "{} {} obj << /Type /Page /Parent {s} /MediaBox [0 0 595 842] /Contents {s} /Resources << /Font << ", .{ number, generation_number, parentRef, contentRef });
 
         for (page.resources.items, 1..) |obj, i| {
             var fontRefBuf: [64]u8 = undefined;
             const fontRef = try obj.ref(&fontRefBuf);
 
-            const printBuf2 = try std.fmt.bufPrint(&buf, "/F{} {s} ", .{ i, fontRef });
-            try writer.writeAll(printBuf2);
-            written += printBuf2.len;
+            try writer.bufPrint(&buf, "/F{} {s} ", .{ i, fontRef });
         }
 
-        written += try writer.write(">> >> >> endobj\n");
-
-        return written;
+        try writer.write(">> >> >> endobj\n");
     }
 };
 
@@ -270,22 +257,19 @@ const StreamNode = struct {
         try stream.data.append(gpa, data);
     }
 
-    fn write(stream: StreamNode, number: u8, generation_number: u8, writer: *Writer) !usize {
-        var written: usize = 0;
+    fn write(stream: StreamNode, number: u8, generation_number: u8, writer: *Writer) !void {
         var buf: [1024]u8 = undefined;
         var len: usize = 0;
         for (stream.data.items) |chunk| {
             len += chunk.len;
         }
-        const printBuf = try std.fmt.bufPrint(&buf, "{} {} obj << /Length {} >>\n", .{ number, generation_number, len });
-        written += try writer.write(printBuf);
-        written += try writer.write("stream\n");
+        try writer.bufPrint(&buf, "{} {} obj << /Length {} >>\n", .{ number, generation_number, len });
+        try writer.write("stream\n");
         for (stream.data.items) |chunk| {
-            written += try writer.write(chunk);
+            try writer.write(chunk);
         }
-        written += try writer.write("\nendstream\n");
-        written += try writer.write("endobj\n");
-        return written;
+        try writer.write("\nendstream\n");
+        try writer.write("endobj\n");
     }
 };
 
@@ -320,10 +304,9 @@ const RawNode = struct {
         raw.children.deinit(gpa);
     }
 
-    fn write(raw: RawNode, number: u8, generation_number: u8, writer: *Writer) !usize {
+    fn write(raw: RawNode, number: u8, generation_number: u8, writer: *Writer) !void {
         var buf: [1024]u8 = undefined;
-        const printBuf = try std.fmt.bufPrint(&buf, "{} {} obj << {s} >> endobj\n", .{ number, generation_number, raw.data });
-        return writer.write(printBuf);
+        try writer.bufPrint(&buf, "{} {} obj << {s} >> endobj\n", .{ number, generation_number, raw.data });
     }
 };
 
@@ -508,63 +491,59 @@ fn prepareIds(self: *Pdf) !void {
     }
 }
 
-pub fn write(self: *Pdf, writer: *std.io.Writer) !usize {
+pub fn write(self: *Pdf, w: *std.io.Writer) !usize {
+    var writer = Writer.init(w);
+
     try self.prepareIds();
 
-    //
     var writeOffsets = try ArrayList(usize).initCapacity(self.allocator, 1);
     defer writeOffsets.deinit(self.allocator);
 
-    var written: usize = 0;
     var fmtBuf: [1024]u8 = undefined;
 
-    written += try writer.write("%PDF-1.4\n");
+    try writer.write("%PDF-1.4\n");
 
     var entriesCount: usize = 1;
     var iter = try Iterator.init(self.allocator, self.catalog);
     defer iter.deinit();
     while (iter.next()) |node| {
-        try writeOffsets.append(self.allocator, written);
-        written += try node.write(writer);
+        try writeOffsets.append(self.allocator, writer.written());
+        try node.write(&writer);
         entriesCount += 1;
     }
 
     // write fonts objects
     for (self.resources.items) |obj| {
-        try writeOffsets.append(self.allocator, written);
-        written += try obj.write(writer);
+        try writeOffsets.append(self.allocator, writer.written());
+        try obj.write(&writer);
         entriesCount += 1;
     }
 
     // write xref
-    const startXref = written;
-    written += try writer.write("xref\n");
+    const startXref = writer.written();
+    try writer.write("xref\n");
 
-    var printBuf = try std.fmt.bufPrint(&fmtBuf, "{} {}\n", .{ 0, entriesCount });
-    written += try writer.write(printBuf);
+    try writer.bufPrint(&fmtBuf, "{} {}\n", .{ 0, entriesCount });
 
-    written += try writer.write("0000000000 65535 f\n");
+    try writer.write("0000000000 65535 f\n");
 
     for (writeOffsets.items) |offset| {
         // TODO we hardcoded 0 as the generation number here
-        printBuf = try std.fmt.bufPrint(&fmtBuf, "{d:0>10} {d:0>5} {c}\n", .{ offset, 0, 'n' });
-        written += try writer.write(printBuf);
+        try writer.bufPrint(&fmtBuf, "{d:0>10} {d:0>5} {c}\n", .{ offset, 0, 'n' });
     }
 
-    written += try writer.write("trailer\n");
+    try writer.write("trailer\n");
 
     // "1 0 R" means that we expect the root element to be the first one
-    printBuf = try std.fmt.bufPrint(&fmtBuf, "<< /Size {} /Root 1 0 R >>\n", .{entriesCount});
-    written += try writer.write(printBuf);
+    try writer.bufPrint(&fmtBuf, "<< /Size {} /Root 1 0 R >>\n", .{entriesCount});
 
-    written += try writer.write("startxref\n");
+    try writer.write("startxref\n");
 
-    printBuf = try std.fmt.bufPrint(&fmtBuf, "{}\n", .{startXref});
-    written += try writer.write(printBuf);
+    try writer.bufPrint(&fmtBuf, "{}\n", .{startXref});
 
-    written += try writer.write("%%EOF");
+    try writer.write("%%EOF");
 
     try writer.flush();
 
-    return written;
+    return writer.written();
 }
